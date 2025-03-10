@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\LevelModel;
 use App\Models\UserModel;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Yajra\DataTables\Contracts\DataTable;
 use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
@@ -31,8 +29,7 @@ class UserController extends Controller
 
     public function list(Request $request)
     {
-        $users = UserModel::select('user_id', 'username', 'nama', 'level_id')
-            ->with('level');
+        $users = UserModel::select('user_id', 'username', 'nama', 'level_id')->with('level');
 
         if ($request->level_id) {
             $users->where('level_id', $request->level_id);
@@ -90,7 +87,7 @@ class UserController extends Controller
 
     public function show($id)
     {
-        $user = UserModel::findOrFail($id);
+        $user = UserModel::find($id);
 
         $breadcrumb = (object) [
             'title' => 'Detail User',
