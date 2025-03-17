@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\KategoriModel;
+use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
 
@@ -198,18 +199,28 @@ class KategoriController extends Controller
     public function delete_ajax(Request $request, $id)
     {
         if ($request->ajax() || $request->wantsJson()) {
-            $check = KategoriModel::find($id);
-            if ($check) {
-                $check->delete();
-                return response()->json([
-                    'status' => true,
-                    'message' => 'Data berhasil dihapus'
-                ]);
-            } else {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Data tidak ditemukan'
-                ]);
+            try {
+                $check = KategoriModel::find($id);
+                if ($check) {
+                    $check->delete();
+                    return response()->json([
+                        'status' => true,
+                        'message' => 'Data berhasil dihapus'
+                    ]);
+                } else {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Data tidak ditemukan'
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::error('Error deleting user: ' . $e->getMessage());
+                if (str_contains($e->getMessage(), 'SQLSTATE[23000]')) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Data tidak dapat dihapus karena masih terkait dengan data lain di sistem'
+                    ]);
+                }
             }
         }
         return redirect('/');

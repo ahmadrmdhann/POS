@@ -6,6 +6,7 @@ use App\Models\KategoriModel;
 use App\Models\BarangModel;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 
@@ -41,11 +42,12 @@ class BarangController extends Controller
         return DataTables::of($barang)
             ->addIndexColumn()
             ->addColumn('aksi', function ($barang) {
-                $btn = '<a href="' . url('/barang/' . $barang->barang_id) . '" class="btn btn-info btn-sm">Detail</a> ';
+                // $btn = '<a href="' . url('/barang/' . $barang->barang_id) . '" class="btn btn-info btn-sm">Detail</a> ';
                 // $btn .= '<a href="' . url('/barang/' . $barang->barang_id . '/edit') . '" class="btn btn-warning btn-sm">Edit</a> ';
                 // $btn .= '<form class="d-inline-block" method="POST" action="' . url('/barang/' . $barang->barang_id) . '">'
                 //     . csrf_field() . method_field('DELETE') .
                 //     '<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Apakah Anda yakin menghapus data ini?\');">Hapus</button></form>';
+                $btn = '<button onclick="modalAction(\'' . url('/barang/' . $barang->barang_id . '/show_ajax') . '\')" class="btn btn-info btn-sm">Detail</button> ';
                 $btn .= '<button onclick="modalAction(\'' . url('/barang/' . $barang->barang_id . '/edit_ajax') . '\')" class="btn btn-warning btn-sm">Edit</button> ';
                 $btn .= '<button onclick="modalAction(\'' . url('/barang/' . $barang->barang_id . '/delete_ajax') . '\')" class="btn btn-danger btn-sm">Hapus</button> ';
                 return $btn;
@@ -192,6 +194,12 @@ class BarangController extends Controller
         redirect('/');
     }
 
+    public function show_ajax(string $id)
+    {
+        $barang = BarangModel::with('kategori')->find($id);
+        return view('barang.show_ajax', ['barang' => $barang]);
+    }
+
     public function edit_ajax(string $id)
     {
         $barang = BarangModel::find($id);
@@ -248,18 +256,28 @@ class BarangController extends Controller
     public function delete_ajax(Request $request, $id)
     {
         if ($request->ajax() || $request->wantsJson()) {
-            $check = BarangModel::find($id);
-            if ($check) {
-                $check->delete();
-                return response()->json([
-                    'status' => true,
-                    'message' => 'Data berhasil dihapus'
-                ]);
-            } else {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Data tidak ditemukan'
-                ]);
+            try {
+                $check = BarangModel::find($id);
+                if ($check) {
+                    $check->delete();
+                    return response()->json([
+                        'status' => true,
+                        'message' => 'Data berhasil dihapus'
+                    ]);
+                } else {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Data tidak ditemukan'
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::error('Error deleting user: ' . $e->getMessage());
+                if (str_contains($e->getMessage(), 'SQLSTATE[23000]')) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Data tidak dapat dihapus karena masih terkait dengan data lain di sistem'
+                    ]);
+                }
             }
         }
         return redirect('/');

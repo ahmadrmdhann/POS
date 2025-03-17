@@ -50,7 +50,6 @@ Route::prefix('level')->group(function () {
     Route::put('/{id}', [LevelController::class, 'update']);
     Route::get('/{id}/edit_ajax', [LevelController::class, 'edit_ajax']);
     Route::put('/{id}/update_ajax', [LevelController::class, 'update_ajax']);
-    Route::get('/{id}/show_ajax', [LevelController::class, 'show_ajax']);
     Route::get('/{id}/delete_ajax', [LevelController::class, 'confirm_ajax']);
     Route::delete('/{id}/delete_ajax', [LevelController::class, 'delete_ajax']);
     Route::delete('/{id}', [LevelController::class, 'destroy']);
@@ -67,7 +66,6 @@ Route::prefix('kategori')->group(function () {
     Route::put('/{id}', [KategoriController::class, 'update']);
     Route::get('/{id}/edit_ajax', [KategoriController::class, 'edit_ajax']);
     Route::put('/{id}/update_ajax', [KategoriController::class, 'update_ajax']);
-    Route::get('/{id}/show_ajax', [KategoriController::class, 'show_ajax']);
     Route::get('/{id}/delete_ajax', [KategoriController::class, 'confirm_ajax']);
     Route::delete('/{id}/delete_ajax', [KategoriController::class, 'delete_ajax']);
     Route::delete('/{id}', [KategoriController::class, 'destroy']);
