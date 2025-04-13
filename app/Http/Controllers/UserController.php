@@ -347,4 +347,61 @@ class UserController extends Controller
         }
         return redirect('/');
     }
+
+    public function export_excel()
+    {
+        $barang = UserModel::select('user_id', 'level_id', 'username', 'nama', 'password')
+        ->with('level')
+        ->orderBy('level_id', 'asc')
+        ->get();
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $sheet->setCellValue('A1', 'No');
+        $sheet->setCellValue('B1', 'User ID');
+        $sheet->setCellValue('C1', 'Level ID');
+        $sheet->setCellValue('D1', 'Username');
+        $sheet->setCellValue('E1', 'Nama');
+        $sheet->setCellValue('F1', 'Password');
+
+        $sheet->getStyle('A1:F1')->getFont()->setBold(true);
+
+        $no = 1;
+        $baris = 2;
+
+        foreach ($barang as $key => $value) {
+            $sheet->setCellValue('A' . $baris, $no);
+            $sheet->setCellValue('B' . $baris, $value->user_id);
+            $sheet->setCellValue('C' . $baris, $value->username);
+            $sheet->setCellValue('D' . $baris, $value->nama);
+            $sheet->setCellValue('E' . $baris, $value->password);
+            $sheet->setCellValue('F' . $baris, $value->level->level_nama);
+
+            $baris++;
+            $no++;
+        }
+
+        foreach (range('A', 'F') as $columnID) {
+            $sheet->getColumnDimension($columnID)->setAutoSize(true);
+        }
+
+        $sheet->setTitle('Data User'); // set title sheet
+
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $filename = 'Data User ' . date('Y-m-d H:i:s') . '.xlsx';
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+        header('Cache-Control: max-age=1');
+
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+        header('Cache-Control: cache, must-revalidate');
+        header('Pragma: public');
+
+        $writer->save('php://output');
+        exit;
+    }
 }
