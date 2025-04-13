@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\LevelModel;
 use App\Models\UserModel;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
@@ -350,7 +351,7 @@ class UserController extends Controller
 
     public function export_excel()
     {
-        $barang = UserModel::select('user_id', 'level_id', 'username', 'nama', 'password')
+        $user = UserModel::select('user_id', 'level_id', 'username', 'nama', 'password')
         ->with('level')
         ->orderBy('level_id', 'asc')
         ->get();
@@ -370,12 +371,12 @@ class UserController extends Controller
         $no = 1;
         $baris = 2;
 
-        foreach ($barang as $key => $value) {
+        foreach ($user as $key => $value) {
             $sheet->setCellValue('A' . $baris, $no);
             $sheet->setCellValue('B' . $baris, $value->user_id);
             $sheet->setCellValue('C' . $baris, $value->username);
             $sheet->setCellValue('D' . $baris, $value->nama);
-            $sheet->setCellValue('E' . $baris, $value->password);
+            $sheet->setCellValue('E' . $baris, bcrypt($value->password));
             $sheet->setCellValue('F' . $baris, $value->level->level_nama);
 
             $baris++;
@@ -403,5 +404,19 @@ class UserController extends Controller
 
         $writer->save('php://output');
         exit;
+    }
+
+    public function export_pdf(){
+        $user = UserModel::select('user_id', 'level_id', 'username', 'nama', 'password')
+        ->with('level')
+        ->orderBy('level_id', 'asc')
+        ->get();
+
+        $pdf = Pdf::loadView('user.export_pdf', ['user' => $user]);
+        $pdf->setPaper('a4', 'portrait');
+        $pdf->setOptions(['isRemoteEnabled', true]);
+        $pdf->render();
+
+        return $pdf->stream('Data User ' . date('Y-m-d H:i:s') . '.pdf');
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\KategoriModel;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
@@ -284,7 +285,7 @@ class KategoriController extends Controller
 
     public function export_excel()
     {
-        $barang = KategoriModel::select('kategori_id', 'kategori_kode', 'kategori_nama')
+        $kategori = KategoriModel::select('kategori_id', 'kategori_kode', 'kategori_nama')
         ->orderBy('kategori_id', 'asc')
         ->get();
 
@@ -301,7 +302,7 @@ class KategoriController extends Controller
         $no = 1;
         $baris = 2;
 
-        foreach ($barang as $key => $value) {
+        foreach ($kategori as $key => $value) {
             $sheet->setCellValue('A' . $baris, $no);
             $sheet->setCellValue('B' . $baris, $value->kategori_id);
             $sheet->setCellValue('C' . $baris, $value->kategori_kode);
@@ -332,5 +333,18 @@ class KategoriController extends Controller
 
         $writer->save('php://output');
         exit;
+    }
+
+    public function export_pdf(){
+        $kategori = KategoriModel::select('kategori_id', 'kategori_kode', 'kategori_nama')
+        ->orderBy('kategori_id', 'asc')
+        ->get();
+
+        $pdf = Pdf::loadView('kategori.export_pdf', ['kategori' => $kategori]);
+        $pdf->setPaper('a4', 'portrait');
+        $pdf->setOptions(['isRemoteEnabled', true]);
+        $pdf->render();
+
+        return $pdf->stream('Data Kategori ' . date('Y-m-d H:i:s') . '.pdf');
     }
 }

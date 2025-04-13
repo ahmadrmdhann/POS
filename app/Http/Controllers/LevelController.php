@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\Facades\DataTables;
 use App\Models\LevelModel;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
@@ -284,7 +285,7 @@ class LevelController extends Controller
 
     public function export_excel()
     {
-        $barang = LevelModel::select('level_id', 'level_kode', 'level_nama')
+        $level = LevelModel::select('level_id', 'level_kode', 'level_nama')
         ->orderBy('level_id', 'asc')
         ->get();
 
@@ -301,7 +302,7 @@ class LevelController extends Controller
         $no = 1;
         $baris = 2;
 
-        foreach ($barang as $key => $value) {
+        foreach ($level as $key => $value) {
             $sheet->setCellValue('A' . $baris, $no);
             $sheet->setCellValue('B' . $baris, $value->level_id);
             $sheet->setCellValue('C' . $baris, $value->level_kode);
@@ -315,7 +316,7 @@ class LevelController extends Controller
             $sheet->getColumnDimension($columnID)->setAutoSize(true);
         }
 
-        $sheet->setTitle('Data Barang'); // set title sheet
+        $sheet->setTitle('Data Level'); // set title sheet
 
         $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
         $filename = 'Data Level ' . date('Y-m-d H:i:s') . '.xlsx';
@@ -332,5 +333,18 @@ class LevelController extends Controller
 
         $writer->save('php://output');
         exit;
+    }
+
+    public function export_pdf(){
+        $level = LevelModel::select('level_id', 'level_kode', 'level_nama')
+        ->orderBy('level_id', 'asc')
+        ->get();
+
+        $pdf = Pdf::loadView('level.export_pdf', ['level' => $level]);
+        $pdf->setPaper('a4', 'portrait');
+        $pdf->setOptions(['isRemoteEnabled', true]);
+        $pdf->render();
+
+        return $pdf->stream('Data Level ' . date('Y-m-d H:i:s') . '.pdf');
     }
 }
