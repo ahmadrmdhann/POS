@@ -5,6 +5,7 @@
         <div class="card-header">
             <h3 class="card-title">{{ $page->title }}</h3>
             <div class="card-tools">
+                <button onclick="modalAction('{{ url('/barang/import') }}')" class="btn btn-sm btn-info mt-1">Import Barang</button>
                 <a class="btn btn-sm btn-primary mt-1" href="{{ url('barang/create') }}">Tambah</a>
                 <button onclick="modalAction('{{ url('/barang/create_ajax') }}')" class="btn btn-sm btn-success mt-1">Tambah Ajax</button>
             </div>
@@ -34,7 +35,7 @@
             </div>
             <table class="table table-bordered table-striped table-hover table-sm" id="table_barang">
                 <thead>
-                    <tr><th>ID</th><th>Kode Barang</th><th>Nama Barang</th><th>Kategori</th><th>Aksi</th></tr>
+                    <tr><th>ID</th><th>Kode Barang</th><th>Nama Barang</th><th>Harga Beli</th><th>Harga Jual</th><th>Kategori</th><th>Aksi</th></tr>
                 </thead>
             </table>
         </div>
@@ -83,6 +84,18 @@
                         className: "",
                         orderable: true,
                         searchable: true
+                    },
+                    {
+                        data: "harga_beli",
+                        className: "",
+                        orderable: true,
+                        searchable: false
+                    },
+                    {
+                        data: "harga_jual",
+                        className: "",
+                        orderable: true,
+                        searchable: false
                     },
                     {
                         data: "kategori.kategori_nama",
