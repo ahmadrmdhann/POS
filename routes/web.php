@@ -7,6 +7,7 @@ use App\Http\Controllers\LevelController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\BarangController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -31,7 +32,14 @@ Route::get('logout', [AuthController::class, 'logout'])->middleware('auth');
 Route::middleware(['auth'])->group(function () {
     Route::get('/', [WelcomeController::class, 'index']);
 
-    Route::middleware(['authorize:ADM'])->group(function(){
+
+    Route::prefix('profile')->group(function () {
+        Route::get('/', [ProfileController::class, 'showCurrentProfile']);
+        Route::get('/upload-picture', [ProfileController::class, 'showUploadForm']);
+        Route::post('upload', [ProfileController::class, 'uploadPicture']);
+    });
+
+    Route::middleware(['authorize:ADM'])->group(function () {
         Route::prefix('level')->group(function () {
             Route::get('/', [LevelController::class, 'index']);
             Route::post('/list', [LevelController::class, 'list']);
@@ -53,7 +61,7 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
-    Route::middleware(['authorize:ADM,MNG'])->group(function(){
+    Route::middleware(['authorize:ADM,MNG'])->group(function () {
         Route::group(['prefix' => 'user'], function () {
             Route::get('/', [UserController::class, 'index']);
             Route::post('/list', [UserController::class, 'list']);

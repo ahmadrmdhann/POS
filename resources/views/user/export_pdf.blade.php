@@ -12,16 +12,29 @@
         table {
             width: 100%;
             border-collapse: collapse;
+            /* Hapus table-layout: fixed agar auto width aktif */
         }
 
         td,
         th {
             padding: 4px 3px;
+            word-wrap: break-word;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            vertical-align: top;
         }
 
         th {
             text-align: left;
         }
+
+        td:nth-child(5),
+        th:nth-child(5) {
+            word-break: break-word;
+            white-space: normal;
+        }
+
+
 
         .d-block {
             display: block;
@@ -77,37 +90,40 @@
 <body>
     <table class="border-bottom-header">
         <tr>
-            <td width="15%" class="text-center"><img src="{{ asset('polinema.png') }}"></td>
+            <td width="15%" class="text-center"><img src="{{ asset('polinema-bw.png') }}"></td>{{-- nnt ditambahin logo poltek --}}
             <td width="85%">
-                <span class="text-center d-block font-11 font-bold mb-1">KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI</span>
-                <span class="text-center d-block font-13 font-bold mb-1">POLITEKNIK NEGERI MALANG</span>
-                <span class="text-center d-block font-10">Jl. Soekarno-Hatta No. 9 Malang 65141</span>
-                <span class="text-center d-block font-10">Telepon (0341) 404424 Pes. 101-105, 0341-404420, Fax. (0341) 404420</span>
+                <span class="text-center d-block font-11 font-bold mb-1">KEMENTERIAN
+                    PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI</span>
+                <span class="text-center d-block font-13 font-bold mb-1">POLITEKNIK NEGERI
+                    MALANG</span>
+                <span class="text-center d-block font-10">Jl. Soekarno-Hatta No. 9 Malang
+                    65141</span>
+                <span class="text-center d-block font-10">Telepon (0341) 404424 Pes. 101
+                    105, 0341-404420, Fax. (0341) 404420</span>
                 <span class="text-center d-block font-10">Laman: www.polinema.ac.id</span>
             </td>
         </tr>
     </table>
+
     <h3 class="text-center">LAPORAN DATA USER</h4>
         <table class="border-all">
             <thead>
                 <tr>
                     <th class="text-center">No</th>
-                    <th>User ID</th>
-                    <th>Level</th>
-                    <th>Username</th>
-                    <th>Nama</th>
-                    <th>Password</th>
+                    <th class="text-center">Level</th>
+                    <th class="text-center">Username</th>
+                    <th class="text-center">Nama</th>
+                    <th class="text-center">Password</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($user as $b)
+                @foreach ($user as $u)
                     <tr>
                         <td class="text-center">{{ $loop->iteration }}</td>
-                        <td>{{ $b->user_id }}</td>
-                        <td>{{ $b->level->level_nama }}</td>
-                        <td>{{ $b->username }}</td>
-                        <td>{{ $b->nama }}</td>
-                        <td>{{ $b->password }}</td>
+                        <td>{{ $u->level->level_nama }}</td>
+                        <td>{{ $u->username }}</td>
+                        <td>{{ $u->nama }}</td>
+                        <td>{{ $u->password }}</td>
                     </tr>
                 @endforeach
             </tbody>
