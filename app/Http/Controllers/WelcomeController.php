@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use Illuminate\Support\Facades\Auth;
 
 
 class WelcomeController extends Controller
@@ -8,7 +9,7 @@ class WelcomeController extends Controller
     public function index()
     {
         $breadcrumb = (object)[
-            'title' => 'Selamat Datang',
+            'title' => 'Selamat Datang, '.Auth::user()->nama,
             'list' => ['Home', 'Welcome'],
         ];
 

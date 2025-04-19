@@ -67,4 +67,54 @@ class ProfileController extends Controller
             return response()->json(['success' => false, 'message' => 'Foto Profil gagal diupload.']);
         }
     }
+
+    public function showEditProfileForm()
+    {
+        $user = Auth::user();
+        return view('profile.update_profile', compact('user'));
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $request->validate([
+            'username' => 'required|string|max:255',
+            'nama' => 'required|string|max:255',
+        ]);
+
+        $user = Auth::user();
+
+        try {
+            $user->username = $request->username;
+            $user->nama = $request->nama;
+            $user->save();
+
+            return redirect('/profile')->with('success', 'Profile berhasil diupdate.');
+        } catch (\Exception $e) {
+            return redirect('/profile')->with('error', 'Gagal untuk mengupdate profile.');
+        }
+    }
+
+    public function showChangePasswordForm()
+    {
+        return view('profile.change_password');
+    }
+
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|min:6|confirmed', // Ensure 'confirmed' is used correctly
+        ]);
+
+        $user = Auth::user();
+
+        if (!password_verify($request->current_password, $user->password)) {
+            return redirect()->back()->with('error', 'Password saat ini salah.');
+        }
+
+        $user->password = bcrypt($request->new_password); // Use 'new_password' as validated
+        $user->save();
+
+        return redirect('/profile')->with('success', 'Password berhasil diubah.');
+    }
 }

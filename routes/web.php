@@ -36,7 +36,11 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('profile')->group(function () {
         Route::get('/', [ProfileController::class, 'showCurrentProfile']);
         Route::get('/upload-picture', [ProfileController::class, 'showUploadForm']);
-        Route::post('upload', [ProfileController::class, 'uploadPicture']);
+        Route::post('/upload', [ProfileController::class, 'uploadPicture']);
+        Route::get('/edit_profile', [ProfileController::class, 'showEditProfileForm']);
+        Route::put('/update_profile', [ProfileController::class, 'updateProfile']);
+        Route::get('/edit_password', [ProfileController::class, 'showChangePasswordForm']);
+        Route::put('/update_password', [ProfileController::class, 'changePassword']);
     });
 
     Route::middleware(['authorize:ADM'])->group(function () {
