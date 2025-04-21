@@ -20,7 +20,8 @@
             <div class="card">
                 <div class="card-header card-outline card-primary text-white">
                     <ul class="nav nav-tabs card-header-tabs">
-                        <li><a href="#" class="nav-link active" data-url="{{ url('/profile/edit_profile') }}">Edit Profile</a></li>
+                        <li><a href="#" class="nav-link active" data-url="{{ url('/profile/edit_profile') }}">Edit
+                                Profile</a></li>
                         <li><a href="#" class="nav-link" data-url="{{ url('/profile/edit_password') }}">Ganti Password</a>
                         </li>
                     </ul>
@@ -28,7 +29,7 @@
                 <div class="card-body">
                     <div class="tab-content">
                         <div id="tabContent">
-                            <!-- Content will be loaded here via AJAX -->
+
                         </div>
                     </div>
                 </div>
@@ -62,18 +63,16 @@
             @endif
 
             $(document).ready(function () {
-                // Load the default tab content
-                loadTabContent($('.nav-link.active').data('url'));
+                setTimeout(function () {
+                    loadTabContent($('.nav-link.active').data('url'));
+                }, 100);
 
-                // Handle tab click
                 $('.nav-link').on('click', function (e) {
                     e.preventDefault();
 
-                    // Remove active class from all tabs and add to the clicked tab
                     $('.nav-link').removeClass('active');
                     $(this).addClass('active');
 
-                    // Load the content for the clicked tab
                     loadTabContent($(this).data('url'));
                 });
 

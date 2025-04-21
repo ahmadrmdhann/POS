@@ -28,6 +28,16 @@
                     <small id="error-kategori_id" class="error-text form-text text-danger"></small>
                 </div>
                 <div class="form-group">
+                    <label>Supplier Barang</label>
+                    <select name="supplier_id" id="supplier_id" class="form-control" required>
+                        <option value="">- Pilih Supplier -</option>
+                        @foreach($supplier as $s)
+                            <option value="{{ $s->supplier_id }}">{{ $s->supplier_nama }}</option>
+                        @endforeach
+                    </select>
+                    <small id="error-supplier_id" class="error-text form-text text-danger"></small>
+                </div>
+                <div class="form-group">
                     <label>Harga Beli</label>
                     <input value="" type="number" name="harga_beli" id="harga_beli" class="form-control" required>
                     <small id="error-harga-beli" class="error-text form-text text-danger"></small>
@@ -36,6 +46,11 @@
                     <label>Harga Jual</label>
                     <input value="" type="number" name="harga_jual" id="harga_jual" class="form-control" required>
                     <small id="error-harga-beli" class="error-text form-text text-danger"></small>
+                </div>
+                <div class="form-group">
+                    <label>Stok</label>
+                    <input value="" type="number" name="stok_jumlah" id="stok_jumlah" class="form-control">
+                    <small id="error-stok_jumlah" class="error-text form-text text-danger"></small>
                 </div>
             </div>
             <div class="modal-footer">
@@ -52,8 +67,10 @@
                 kategori_id: { required: true },
                 barang_kode: { required: true, minlength: 3 },
                 barang_nama: { required: true, minlength: 3 },
+                supplier_id: { required: true },
                 harga_beli: { required: true, number: true, min: 1 },
-                harga_jual: { required: true, number: true, min: 1 }
+                harga_jual: { required: true, number: true, min: 1 },
+                stok_jumlah: { number: true, min: 0 }
             },
 
             submitHandler: function (form) {

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\KategoriModel;
 use App\Models\BarangModel;
+use App\Models\StokModel;
+use App\Models\SupplierModel;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -42,14 +44,9 @@ class BarangController extends Controller
         return DataTables::of($barang)
             ->addIndexColumn()
             ->addColumn('aksi', function ($barang) {
-                // $btn = '<a href="' . url('/barang/' . $barang->barang_id) . '" class="btn btn-info btn-sm">Detail</a> ';
-                // $btn .= '<a href="' . url('/barang/' . $barang->barang_id . '/edit') . '" class="btn btn-warning btn-sm">Edit</a> ';
-                // $btn .= '<form class="d-inline-block" method="POST" action="' . url('/barang/' . $barang->barang_id) . '">'
-                //     . csrf_field() . method_field('DELETE') .
-                //     '<button type="submit" class="btn btn-danger btn-sm" onclick="return confirm(\'Apakah Anda yakin menghapus data ini?\');">Hapus</button></form>';
                 $btn = '<button onclick="modalAction(\'' . url('/barang/' . $barang->barang_id . '/show_ajax') . '\')" class="btn btn-info btn-sm">Detail</button> ';
                 $btn .= '<button onclick="modalAction(\'' . url('/barang/' . $barang->barang_id . '/edit_ajax') . '\')" class="btn btn-warning btn-sm">Edit</button> ';
-                $btn .= '<button onclick="modalAction(\'' . url('/barang/' . $barang->barang_id . '/delete_ajax') . '\')" class="btn btn-danger btn-sm">Hapus</button> ';
+                // $btn .= '<button onclick="modalAction(\'' . url('/barang/' . $barang->barang_id . '/delete_ajax') . '\')" class="btn btn-danger btn-sm">Hapus</button> ';
                 return $btn;
             })
             ->rawColumns(['aksi'])
@@ -161,7 +158,9 @@ class BarangController extends Controller
     {
         $kategori = KategoriModel::select('kategori_id', 'kategori_nama')->get();
 
-        return view('barang.create_ajax')->with('kategori', $kategori);
+        $supplier = SupplierModel::select('supplier_id', 'supplier_nama')->get();
+
+        return view('barang.create_ajax')->with('kategori', $kategori)->with('supplier', $supplier);
     }
 
     public function store_ajax(Request $request)
@@ -171,8 +170,10 @@ class BarangController extends Controller
                 'kategori_id' => 'required|exists:m_kategori,kategori_id',
                 'barang_kode' => 'required|min:3|unique:m_barang,barang_kode',
                 'barang_nama' => 'required|min:3',
+                'supplier_id' => 'required|exists:m_supplier,supplier_id',
                 'harga_beli' => 'required|numeric|min:1',
                 'harga_jual' => 'required|numeric|min:1',
+                'stok_jumlah' => 'nullable|numeric|min:0'
             ];
 
             $validator = Validator::make($request->all(), $rules);
@@ -185,13 +186,28 @@ class BarangController extends Controller
                 ]);
             }
 
-            BarangModel::create($request->all());
+            $barang = BarangModel::create([
+                'kategori_id' => $request->kategori_id,
+                'barang_kode' => $request->barang_kode,
+                'barang_nama' => $request->barang_nama,
+                'harga_beli' => $request->harga_beli,
+                'harga_jual' => $request->harga_jual,
+            ]);
+
+            StokModel::create([
+                'supplier_id' => $request->supplier_id,
+                'barang_id' => $barang->barang_id, // Use the created barang_id
+                'user_id' => auth()->user()->user_id,
+                'stok_tanggal' => now(),
+                'stok_jumlah' => $request->stok_jumlah ?? 0,
+            ]);
+
             return response()->json([
                 'status' => true,
                 'message' => 'Data barang berhasil disimpan'
             ]);
         }
-        redirect('/');
+        return redirect('/');
     }
 
     public function show_ajax(string $id)
@@ -308,10 +324,11 @@ class BarangController extends Controller
             $sheet = $spreadsheet->getActiveSheet(); // ambil sheet yang aktif
             $data = $sheet->toArray(null, false, true, true); // ambil data excel
             $insert = [];
+            $stokInsert = [];
             if (count($data) > 1) { // jika data lebih dari 1 baris
                 foreach ($data as $baris => $value) {
                     if ($baris > 1) { // baris ke 1 adalah header, maka lewati
-                        $insert[] = [
+                        $barang = [
                             'kategori_id' => $value['A'],
                             'barang_kode' => $value['B'],
                             'barang_nama' => $value['C'],
@@ -319,11 +336,21 @@ class BarangController extends Controller
                             'harga_jual' => $value['E'],
                             'created_at' => now(),
                         ];
+                        $insert[] = $barang;
                     }
                 }
                 if (count($insert) > 0) {
-                    // insert data ke database, jika data sudah ada, maka diabaikan
-                    BarangModel::insertOrIgnore($insert);
+                    foreach ($insert as $index => $barang) {
+                        $createdBarang = BarangModel::create($barang); // Insert barang
+                        $stokInsert[] = [
+                            'supplier_id' => $data[$index + 2]['F'], // Use supplier_id from Excel
+                            'barang_id' => $createdBarang->barang_id,
+                            'user_id' => auth()->user()->user_id,
+                            'stok_tanggal' => now(),
+                            'stok_jumlah' => $data[$index + 2]['G'] ?? 0, // Default stok to 0 if not provided
+                        ];
+                    }
+                    StokModel::insert($stokInsert); // Insert stok data
                 }
                 return response()->json([
                     'status' => true,
@@ -342,9 +369,9 @@ class BarangController extends Controller
     public function export_excel()
     {
         $barang = BarangModel::select('kategori_id', 'barang_kode', 'barang_nama', 'harga_beli', 'harga_jual')
-        ->orderBy('kategori_id', 'asc')
-        ->with('kategori')
-        ->get();
+            ->orderBy('kategori_id', 'asc')
+            ->with('kategori')
+            ->get();
 
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
@@ -396,12 +423,13 @@ class BarangController extends Controller
         exit;
     }
 
-    public function export_pdf(){
+    public function export_pdf()
+    {
         $barang = BarangModel::select('kategori_id', 'barang_kode', 'barang_nama', 'harga_beli', 'harga_jual')
-        ->orderBy('kategori_id', 'asc')
-        ->orderBy('barang_kode', 'asc')
-        ->with('kategori')
-        ->get();
+            ->orderBy('kategori_id', 'asc')
+            ->orderBy('barang_kode', 'asc')
+            ->with('kategori')
+            ->get();
 
         $pdf = Pdf::loadView('barang.export_pdf', ['barang' => $barang]);
         $pdf->setPaper('a4', 'portrait');
